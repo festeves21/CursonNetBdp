@@ -6,6 +6,7 @@ using WebAppDia2.Contract.Dtos;
 using WebAppDia2.Entities;
 using WebAppDia2.Repositories;
 using WebAppDia3.Entities;
+using WebAppDia3.Services;
 
 namespace WebAppDia2.Controllers
 {
@@ -25,11 +26,14 @@ namespace WebAppDia2.Controllers
 
         private readonly ILogger<Producto2Controller> _logger;
 
+        private readonly CacheService _cacheService;
+
         public Producto2Controller(IRepository<Product> productsRepository,
                                    IRepository<Supplier> supplierRepository,
                                    IRepository<Category> categoryRepository,
                                     IProductRepository productRepository, IMapper mapper,
-                                    ILogger<Producto2Controller> logger) 
+                                    ILogger<Producto2Controller> logger,
+                                      CacheService cacheService) 
         {
             _productsRepository = productsRepository;
             _productRepository = productRepository;
@@ -40,14 +44,47 @@ namespace WebAppDia2.Controllers
 
             _logger = logger;
 
+            _cacheService = cacheService;
+
         }
 
 
         [HttpGet("GetProducts")]
         public IQueryable<Product> GetAll()
         {
+
+
             var lista = _productsRepository.GetAll();
             return lista;
+        }
+
+
+        [HttpGet("GetProductsCaching")]
+        public List<Product> GetAllCache()
+        {
+
+            const string cacheKey = "GetAllData";
+            var data = _cacheService.Get<List<Product>>(cacheKey);
+
+
+            List<Product> products = new List<Product>();
+
+            if (data == null)
+            {
+                var lista = _productsRepository.GetAll();
+
+                products = lista.ToList();
+
+                // Establecer datos en caché por 10 minutos
+                _cacheService.Set(cacheKey, products, TimeSpan.FromMinutes(10));
+            }
+            else
+                products = data;
+
+
+
+
+            return products;
         }
 
 

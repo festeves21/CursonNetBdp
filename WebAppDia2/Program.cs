@@ -11,6 +11,7 @@ using WebAppDia2.Repositories;
 using WebAppDia2.Services;
 using WebAppDia3.Data;
 using WebAppDia3.Mapping;
+using WebAppDia3.Services;
 
 namespace WebAppDia2
 {
@@ -72,6 +73,10 @@ namespace WebAppDia2
 
                 // Add services to the container.
                 builder.Services.AddAutoMapper(typeof(MappingProfile));
+
+                // Configura el servicio de caching
+                builder.Services.AddMemoryCache(); // Configura el servicio de caching
+                builder.Services.AddSingleton<CacheService>(); // Registra el servicio de cache
 
 
                 builder.Services.AddControllers();
