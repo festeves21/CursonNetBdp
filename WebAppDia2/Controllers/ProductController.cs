@@ -18,7 +18,6 @@ namespace WebAppDia2.Controllers
         {
             _context = context;
 
-
         }
 
         [HttpGet("GetProducts")]

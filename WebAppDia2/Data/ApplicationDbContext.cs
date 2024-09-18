@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using WebAppDia2.Entities;
+using WebAppDia3.Entities;
 
 namespace WebAppDia2.Data
 {
@@ -12,6 +13,9 @@ namespace WebAppDia2.Data
         }
 
         public DbSet<Product> Products { get; set; }
+
+        public DbSet<Category> Categories { get; set; }
+        public DbSet<Supplier> Suppliers { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -30,6 +34,38 @@ namespace WebAppDia2.Data
                       .HasPrecision(18, 2);  // Hasta 18 dígitos con 2 decimales
 
             });
+
+            // Mapea Category a la tabla "tbCategories" y define la longitud del campo "Name"
+            modelBuilder.Entity<Category>()
+                .ToTable("tbCategories")
+                .Property(c => c.Name)
+                .HasMaxLength(128)
+                .IsRequired(); // Campo obligatorio
+
+
+            // Mapea Supplier a la tabla "tbSuppliers" y define la longitud del campo "Name"
+            modelBuilder.Entity<Supplier>()
+                .ToTable("tbSuppliers")
+                .Property(s => s.Name)
+                .HasMaxLength(128)
+                .IsRequired(); // Campo obligatorio
+
+
+            // Relación Product -> Category (muchos a uno)
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.Category)
+                .WithMany(c => c.Products)
+                .HasForeignKey(p => p.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);  // Configura como opcional
+
+            // Relación Product -> Supplier (muchos a uno)
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.Supplier)
+                .WithMany(s => s.Products)
+                .HasForeignKey(p => p.SupplierId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);  // Configura como opcional
 
 
             base.OnModelCreating(modelBuilder);

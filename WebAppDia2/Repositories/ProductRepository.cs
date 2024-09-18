@@ -1,17 +1,22 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using AutoMapper;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
 using WebAppDia2.Contract;
+using WebAppDia2.Contract.Dtos;
+using WebAppDia2.Controllers;
 using WebAppDia2.Data;
 using WebAppDia2.Entities;
 
 namespace WebAppDia2.Repositories
 {
-    public class ProductRepository: Repository<Product>, IProductRepository
+    public class ProductRepository : Repository<Product>, IProductRepository
     {
 
-        public ProductRepository(ApplicationDbContext context) : base(context)
+        private readonly IMapper _mapper;
+        public ProductRepository(ApplicationDbContext context, IMapper mapper) : base(context)
         {
+            _mapper = mapper;
         }
 
 
@@ -55,6 +60,37 @@ namespace WebAppDia2.Repositories
                 .ToListAsync();
 
             return products;
+        }
+
+
+        public async Task<ProductDTO> GetProductDetailsByIdAsync(int id)
+        {
+            // Obtener el producto y los datos relacionados en una sola consulta Sin Autommapper
+            var productDto = await _context.Products
+                .Where(p => p.Id == id)
+                .Include(p => p.Category)   // Cargar la categoría relacionada
+                .Include(p => p.Supplier)   // Cargar el proveedor relacionado
+                .Select(p => new ProductDTO
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Price = p.Price,
+                    CategoryName = string.IsNullOrWhiteSpace(p.Category.Name) ? "No Category" : p.Category.Name, // Validar y proporcionar valor predeterminado
+                    SupplierName = string.IsNullOrWhiteSpace(p.Supplier.Name) ? "No Supplier" : p.Supplier.Name  // Validar y proporcionar valor predeterminado
+                })
+                .FirstOrDefaultAsync();
+
+            //Con autoMapper
+            var productFe = await _context.Products
+                .Where(p => p.Id == id)
+                .Include(p => p.Category)   // Cargar la categoría relacionada
+                .Include(p => p.Supplier)   // Cargar el proveedor relacionado
+                .FirstOrDefaultAsync();
+
+            var produtDtoFe = _mapper.Map<ProductDTO>(productFe);
+
+            return produtDtoFe;
+
         }
 
     }
