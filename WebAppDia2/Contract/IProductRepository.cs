@@ -1,4 +1,5 @@
-﻿using WebAppDia2.Entities;
+﻿using WebAppDia2.Contract.Dtos;
+using WebAppDia2.Entities;
 
 namespace WebAppDia2.Contract
 {
@@ -11,6 +12,8 @@ namespace WebAppDia2.Contract
         Task<IEnumerable<Product>> GetProductsPagedAsyncSp(string searchTerm, int pageNumber, int pageSize);
 
         Task<IEnumerable<Product>> GetProductsPagedAsyncEf(string searchTerm, int pageNumber, int pageSize);
+
+        Task<ProductDTO> GetProductDetailsByIdAsync(int id);
 
     }
 }
