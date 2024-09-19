@@ -17,7 +17,7 @@ namespace WebAppDia2.Services
             {
                 Id = 1,
                 UserName = "exampleUser",
-                Role = "admin"
+                Roles = "admin"
             };
         }
 
@@ -28,7 +28,7 @@ namespace WebAppDia2.Services
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName),
             new Claim("client_type", clientType), // Claim específico para el tipo de cliente
-            new Claim(ClaimTypes.Role, user.Role)
+            new Claim(ClaimTypes.Role, user.Roles)
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret));

@@ -5,6 +5,7 @@ using WebAppDia2.Contract;
 using WebAppDia2.Contract.Dtos;
 using WebAppDia2.Entities;
 using WebAppDia2.Repositories;
+using WebAppDia3.Contract;
 using WebAppDia3.Entities;
 using WebAppDia3.Services;
 
@@ -203,6 +204,45 @@ namespace WebAppDia2.Controllers
 
             return Ok(resultado);
         }
+
+
+        [HttpPost("recordTransaction")]
+        public async Task<IActionResult> RecordProductTransaction(
+            [FromBody] ProductTransactionRequest request)
+        {
+            if (request == null || request.Amount <= 0)
+            {
+                return BadRequest("Invalid request.");
+            }
+
+            try
+            {
+                await _productRepository
+                    .UpdateInventAsync(request.ProductId, request.TypeId,
+                                    request.Amount, request.UserId);
+                return Ok("Transaction recorded successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error recording transaction.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+
+        [HttpGet("kardex-summary")]
+        public async Task<IActionResult> GetKardexSummary([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+        {
+            if (startDate > endDate)
+            {
+                return BadRequest("La fecha de inicio debe ser anterior a la fecha de fin.");
+            }
+
+            var summary = await _productRepository.GetKardexSummaryByUserAsync(startDate, endDate);
+
+            return Ok(summary);
+        }
+
 
     }
 }

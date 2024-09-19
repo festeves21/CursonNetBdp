@@ -1,5 +1,6 @@
 ﻿using WebAppDia2.Contract.Dtos;
 using WebAppDia2.Entities;
+using WebAppDia3.Contract.Dtos;
 
 namespace WebAppDia2.Contract
 {
@@ -14,6 +15,10 @@ namespace WebAppDia2.Contract
         Task<IEnumerable<Product>> GetProductsPagedAsyncEf(string searchTerm, int pageNumber, int pageSize);
 
         Task<ProductDTO> GetProductDetailsByIdAsync(int id);
+
+        Task<Boolean> UpdateInventAsync(int productId, int typeId, decimal ammount, int userId);
+
+        Task<List<UserKardexSummaryDto>> GetKardexSummaryByUserAsync(DateTime startDate, DateTime endDate);
 
     }
 }

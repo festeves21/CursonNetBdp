@@ -16,5 +16,13 @@ namespace WebAppDia2.Entities
         public Category Category { get;set ;}
         public int? SupplierId{ get ;set;}
         public Supplier Supplier{ get; set;}
+
+
+        // Nueva propiedad para la relación con ProductBalance
+        public ICollection<ProductBalance> ProductBalances { get; set; }
+
+        // Nueva propiedad para la relación con ProductKardex
+        public ICollection<ProductKardex> ProductKardexs { get; set; }
+
     }
 }

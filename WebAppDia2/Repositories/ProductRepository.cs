@@ -7,6 +7,9 @@ using WebAppDia2.Contract.Dtos;
 using WebAppDia2.Controllers;
 using WebAppDia2.Data;
 using WebAppDia2.Entities;
+using WebAppDia3.Contract;
+using WebAppDia3.Contract.Dtos;
+using WebAppDia3.Entities;
 
 namespace WebAppDia2.Repositories
 {
@@ -14,9 +17,12 @@ namespace WebAppDia2.Repositories
     {
 
         private readonly IMapper _mapper;
-        public ProductRepository(ApplicationDbContext context, IMapper mapper) : base(context)
+        private readonly IUnitOfWork _uow;
+
+        public ProductRepository(ApplicationDbContext context, IMapper mapper, IUnitOfWork uow) : base(context)
         {
             _mapper = mapper;
+            _uow = uow;
         }
 
 
@@ -91,6 +97,104 @@ namespace WebAppDia2.Repositories
 
             return produtDtoFe;
 
+        }
+
+        public async Task<Boolean> UpdateInventAsync(int productId, int typeId, decimal ammount, int userId)
+        {
+            bool result = false;
+            if (ammount <= 0) 
+            {
+                throw new ArgumentException("La cantidad debe ser mayor que cero");
+            }
+
+
+            await _uow.BeginTransactionAsync();
+
+            try 
+            {
+                var kardexEntry = new ProductKardex
+                {
+                    ProductId = productId,
+                    Amount = ammount,
+                    UserId = userId,
+                    Created = DateTime.UtcNow,
+                    TipoId = typeId
+                };
+                await _context.ProductKardexes.AddAsync(kardexEntry);
+
+
+                //Actualizacion al balance
+                //Buscar el registro que totaliza ese producto
+
+                //Buscar el balance actual del producto
+
+                var productBalance = await _context.ProductBalances
+                    .Where(pb => pb.ProductId == productId)
+                    .FirstOrDefaultAsync();
+
+                if (productBalance != null)
+                {
+                    switch (typeId)
+                    {
+                        case 1:
+                            productBalance.Amount += ammount;
+                            productBalance.UserId = userId;
+                            productBalance.Created = DateTime.UtcNow;
+                            break;
+                        case 2:
+                            productBalance.Amount -= ammount;
+                            productBalance.UserId = userId;
+                            productBalance.Created = DateTime.UtcNow;
+                            break;
+                        default: break;
+                    }
+                    _context.ProductBalances.Update(productBalance);
+                }
+                else 
+                {
+                    productBalance = new ProductBalance
+                    {
+                        ProductId = productId,
+                        Amount = ammount,
+                        UserId = userId,
+                        Created = DateTime.UtcNow
+                    };
+
+                    await _context.ProductBalances.AddAsync(productBalance);
+                    await _uow.CommitTransactionAsync();
+
+                
+                }
+
+                await _context.SaveChangesAsync();
+                result = true;
+
+
+            } catch (Exception ex) {
+                //Si solo falla , revertir los cambios
+                await _uow.RollbackTransactionAsync();
+            }
+
+            return result;
+        }
+
+
+
+        public async Task<List<UserKardexSummaryDto>> GetKardexSummaryByUserAsync(DateTime startDate, DateTime endDate)
+        {
+            var result = await _context.ProductKardexes
+                .Where(k => k.Created >= startDate && k.Created <= endDate)
+                .GroupBy(k => k.UserId)
+                .Select(g => new UserKardexSummaryDto
+                {
+                    UserId = g.Key,
+                    CantidadMovimientos = g.Count(),
+                    TotalIngresos = g.Sum(k => k.TipoId == 1 ? k.Amount : 0),
+                    TotalEgresos = g.Sum(k => k.TipoId == 2 ? k.Amount : 0)
+                })
+                .ToListAsync();
+
+            return result;
         }
 
     }

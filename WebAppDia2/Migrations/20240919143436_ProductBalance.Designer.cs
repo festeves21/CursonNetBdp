@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebAppDia2.Data;
 
@@ -11,9 +12,10 @@ using WebAppDia2.Data;
 namespace WebAppDia2.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240919143436_ProductBalance")]
+    partial class ProductBalance
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -125,7 +127,6 @@ namespace WebAppDia2.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<decimal>("Amount")
-                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("Created")
@@ -144,39 +145,6 @@ namespace WebAppDia2.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("tbBalances", (string)null);
-                });
-
-            modelBuilder.Entity("WebAppDia3.Entities.ProductKardex", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<decimal>("Amount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TipoId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("tbKardexs", (string)null);
                 });
 
             modelBuilder.Entity("WebAppDia3.Entities.Supplier", b =>
@@ -249,32 +217,13 @@ namespace WebAppDia2.Migrations
                     b.HasOne("WebAppDia2.Entities.Product", "Product")
                         .WithMany("ProductBalances")
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("WebAppDia2.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("WebAppDia3.Entities.ProductKardex", b =>
-                {
-                    b.HasOne("WebAppDia2.Entities.Product", "Product")
-                        .WithMany("ProductKardexs")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("WebAppDia2.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Product");
@@ -296,8 +245,6 @@ namespace WebAppDia2.Migrations
             modelBuilder.Entity("WebAppDia2.Entities.Product", b =>
                 {
                     b.Navigation("ProductBalances");
-
-                    b.Navigation("ProductKardexs");
                 });
 
             modelBuilder.Entity("WebAppDia3.Entities.Category", b =>
