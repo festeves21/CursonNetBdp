@@ -9,6 +9,7 @@ using WebAppDia2.Data;
 using WebAppDia2.Models;
 using WebAppDia2.Repositories;
 using WebAppDia2.Services;
+using WebAppDia3.Contract;
 using WebAppDia3.Data;
 using WebAppDia3.Mapping;
 using WebAppDia3.Services;
@@ -79,6 +80,8 @@ namespace WebAppDia2
                 builder.Services.AddSingleton<CacheService>(); // Registra el servicio de cache
 
 
+
+
                 builder.Services.AddControllers();
 
                 //Registrar DbContext
@@ -90,7 +93,7 @@ namespace WebAppDia2
 
                 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
                 builder.Services.AddScoped<IProductRepository, ProductRepository>();
-
+                builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
                 var app = builder.Build();
 
