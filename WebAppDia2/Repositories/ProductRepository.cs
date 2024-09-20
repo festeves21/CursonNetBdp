@@ -120,6 +120,7 @@ namespace WebAppDia2.Repositories
                     Created = DateTime.UtcNow,
                     TipoId = typeId
                 };
+                
                 await _context.ProductKardexes.AddAsync(kardexEntry);
 
 
@@ -161,11 +162,9 @@ namespace WebAppDia2.Repositories
                     };
 
                     await _context.ProductBalances.AddAsync(productBalance);
-                    await _uow.CommitTransactionAsync();
-
-                
+                   
                 }
-
+                await _uow.CommitTransactionAsync();
                 await _context.SaveChangesAsync();
                 result = true;
 
