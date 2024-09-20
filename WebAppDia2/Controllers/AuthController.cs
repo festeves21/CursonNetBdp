@@ -1,6 +1,10 @@
 ﻿
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 using WebAppDia2.Entities;
 using WebAppDia2.Models;
 using WebAppDia2.Services;
@@ -8,11 +12,15 @@ using WebAppDia3.Models;
 
 namespace WebAppDia2.Controllers
 {
+    public class TokenRequest
+    {
+        public string Token { get; set; }
+    }
     [ApiController]
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
-
     {
+
         private readonly JwtTokenService _jw;
 
         public AuthController(JwtTokenService jw)
@@ -36,6 +44,7 @@ namespace WebAppDia2.Controllers
             // Crear el objeto de respuesta usando la DTO
             var response = new AuthResponseDTO
             {
+                IsSuccess = true,
                 AccessToken = tokenResponse.AccessToken,
                 RefreshToken = tokenResponse.RefreshToken.Token,
                 RefreshTokenExpires = tokenResponse.RefreshToken.Expires
@@ -47,7 +56,67 @@ namespace WebAppDia2.Controllers
 
         }
 
+        [HttpPost("validate-token")]
+        public async Task<IActionResult> ValidateToken([FromBody] TokenRequest request)
+        {
+            if (string.IsNullOrEmpty(request.Token))
+            {
+                return BadRequest("Token is required.");
+            }
 
+
+            ObjectResult returned;
+
+            try
+            {
+                // Validar el token
+                var claimsPrincipal = _jw.ValidateToken(request.Token);
+
+                var answer = false;
+
+                if (claimsPrincipal != null)
+                {
+                    answer = true;
+                }
+
+                // Si el token es válido, puedes retornar información adicional si lo deseas
+                //return Ok(new
+                //{
+                //    IsValid = true,
+                //    Claims = claimsPrincipal.Claims.Select(c => new { c.Type, c.Value })
+                //});
+
+                returned = StatusCode(StatusCodes.Status201Created, new { isSuccess = answer, Claims = claimsPrincipal.Claims.Select(c => new { c.Type, c.Value }) });
+
+
+            }
+            catch (SecurityTokenExpiredException)
+            {
+                return Unauthorized(new { IsValid = false, Message = "Token has expired." });
+            }
+            catch (SecurityTokenException ex)
+            {
+                return Unauthorized(new { IsValid = false, Message = ex.Message });
+            }
+
+            return returned;
+
+        }
+
+
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            // Elimina cualquier cookie de autenticación
+            HttpContext.SignOutAsync();
+
+            // Limpia cualquier otro estado necesario de la sesión o autenticación
+            //       HttpContext.Session.Clear();
+
+            // Devuelve un mensaje de confirmación
+            return Ok(new { message = "Sesión cerrada exitosamente." });
+        }
 
     }
+
 }

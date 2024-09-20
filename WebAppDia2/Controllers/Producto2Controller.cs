@@ -5,6 +5,7 @@ using WebAppDia2.Contract;
 using WebAppDia2.Contract.Dtos;
 using WebAppDia2.Entities;
 using WebAppDia2.Repositories;
+using WebAppDia3.Authorization;
 using WebAppDia3.Contract;
 using WebAppDia3.Entities;
 using WebAppDia3.Services;
@@ -242,6 +243,38 @@ namespace WebAppDia2.Controllers
 
             return Ok(summary);
         }
+
+
+        // [CustomAuthorize()]
+        [CustomAuthorize(AppPermissions.Pages_General_Data)]
+        [HttpGet("GetProductsCachingAuth")]
+        public List<Product> GetAllCacheAuth()
+        {
+
+            const string cacheKey = "GetAllData";
+            var data = _cacheService.Get<List<Product>>(cacheKey);
+
+
+            List<Product> products = new List<Product>();
+
+            if (data == null)
+            {
+                var lista = _productsRepository.GetAll();
+
+                products = lista.ToList();
+
+                // Establecer datos en caché por 10 minutos
+                _cacheService.Set(cacheKey, products, TimeSpan.FromMinutes(10));
+            }
+            else
+                products = data;
+
+
+
+
+            return products;
+        }
+
 
 
     }
