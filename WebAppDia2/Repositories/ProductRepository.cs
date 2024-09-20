@@ -161,11 +161,12 @@ namespace WebAppDia2.Repositories
                     };
 
                     await _context.ProductBalances.AddAsync(productBalance);
-                    await _uow.CommitTransactionAsync();
+                   
 
                 
                 }
 
+                await _uow.CommitTransactionAsync();
                 await _context.SaveChangesAsync();
                 result = true;
 
