@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Jose;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -12,6 +13,8 @@ using WebAppDia3.Models;
 
 namespace WebAppDia2.Services
 {
+
+
     public class JwtTokenService
     {
         private readonly JwtSettingsFile _jwtSettings;
@@ -93,6 +96,10 @@ namespace WebAppDia2.Services
             var accessTokenString = tokenHandler.WriteToken(accessToken);
 
 
+            var encryptedToken =
+                JWT.Encode(accessTokenString, _publicKey, JweAlgorithm.RSA_OAEP, JweEncryption.A256GCM);
+
+
             // Generar Refresh Token 
             var refreshToken = await GenerateRefreshToken(user.Id);
 
@@ -100,13 +107,66 @@ namespace WebAppDia2.Services
             // Retornar el DTO con Access Token y Refresh Token
             return new TokenResponseDTO
             {
-                AccessToken = accessTokenString,
+                AccessToken = encryptedToken,
                 RefreshToken = refreshToken
             };
 
 
         }
 
+
+        public string DecryptToken(string encryptedToken)
+        {
+            // Desencriptar el token utilizando la clave privada
+            try
+            {
+                var decryptedToken = JWT.Decode(encryptedToken, _privateKey);
+                return decryptedToken;
+            }
+            catch (Exception ex)
+            {
+                // Manejar errores en caso de token inválido o problemas con el descifrado
+                throw new SecurityTokenException("Token inválido o no pudo ser desencriptado", ex);
+            }
+        }
+
+        // Métodos para obtener el emisor, audiencia y clave pública
+        public string GetIssuer()
+        {
+            return _jwtSettings.Issuer; // Obtener del archivo de configuración
+        }
+
+        public string GetAudience()
+        {
+            return _jwtSettings.Audience; // Obtener del archivo de configuración
+        }
+
+        public RsaSecurityKey GetPublicKey()
+        {
+            return new RsaSecurityKey(_publicKey); // Convertir la clave pública a RsaSecurityKey
+        }
+
+        public ClaimsPrincipal ValidateToken(string encryptedToken)
+        {
+            // Desencriptar el token
+            var jwt = DecryptToken(encryptedToken);
+
+            // Aquí puedes validar el token desencriptado como cualquier JWT normal
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidIssuer = _jwtSettings.Issuer,
+                ValidAudience = _jwtSettings.Audience,
+                IssuerSigningKey = new RsaSecurityKey(_privateKey) // Clave privada para verificar la firma
+            };
+
+            SecurityToken validatedToken;
+            var principal = tokenHandler.ValidateToken(jwt, validationParameters, out validatedToken);
+
+            return principal;
+
+            // El token es válido, puedes continuar con la lógica de autenticación/autorización
+        }
         private async Task<RefreshTokenDTO> GenerateRefreshToken(int userId)
         {
             var randomBytes = new byte[32];
@@ -143,4 +203,8 @@ namespace WebAppDia2.Services
 
 
     }
+
+
+
+
 }

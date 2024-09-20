@@ -2,6 +2,7 @@
 {
     public class AuthResponseDTO
     {
+        public bool IsSuccess { get; set; }
         public string AccessToken { get; set; }
         public string RefreshToken { get; set; }
         public DateTime RefreshTokenExpires { get; set; }
@@ -18,4 +19,6 @@
         public string Token { get; set; }
         public DateTime Expires { get; set; }
     }
+
+
 }
