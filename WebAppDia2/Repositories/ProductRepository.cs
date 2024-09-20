@@ -197,5 +197,40 @@ namespace WebAppDia2.Repositories
             return result;
         }
 
+
+        public async Task<List<ProductDTO>> GetFullProductsAsync( string? searchTerm, int pageNumber, int pageSize)
+        {
+            var query = _context.Products.AsQueryable();
+
+            // Aplicar filtrado
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                query = query.Where(p => p.Name.Contains(searchTerm));
+            }
+
+            // Aplicar paginación
+            var products = await query
+                .Include(p => p.Category)   // Cargar la categoría relacionada
+                .Include(p => p.Supplier)   // Cargar el proveedor relacionado
+                .OrderBy(p => p.Name)       // Ordenar por algún criterio
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                  .Select(p => new ProductDTO
+                  {
+                      Id = p.Id,
+                      Name = p.Name,
+                      Price = p.Price,
+                      CategoryName = string.IsNullOrWhiteSpace(p.Category.Name) ? "No Category" : p.Category.Name, // Validar y proporcionar valor predeterminado
+                      SupplierName = string.IsNullOrWhiteSpace(p.Supplier.Name) ? "No Supplier" : p.Supplier.Name  // Validar y proporcionar valor predeterminado
+                  })
+                    .ToListAsync();
+
+
+            if (products == null) products = new List<ProductDTO>();
+
+            return products;
+        }
+
+
     }
 }

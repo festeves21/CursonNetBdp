@@ -7,6 +7,7 @@ using WebAppDia2.Entities;
 using WebAppDia2.Repositories;
 using WebAppDia3.Authorization;
 using WebAppDia3.Contract;
+using WebAppDia3.Contract.Dtos;
 using WebAppDia3.Entities;
 using WebAppDia3.Services;
 
@@ -276,6 +277,23 @@ namespace WebAppDia2.Controllers
         }
 
 
+
+        [HttpGet("GetFullProductsAsync")]
+        public async Task<IActionResult> GetFullProductsAsync(
+              [FromQuery] string? searchTerm,
+              [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        {
+            var data = await _productRepository.GetFullProductsAsync(searchTerm, pageNumber, pageSize);
+
+            if (data == null || data.Count <= 0)
+                return StatusCode(StatusCodes.Status404NotFound, ResponseApiService.Response(StatusCodes.Status404NotFound));
+
+
+            var ret = StatusCode(StatusCodes.Status200OK, ResponseApiService.Response(StatusCodes.Status200OK, data));
+            return ret;
+
+
+        }
 
     }
 }
