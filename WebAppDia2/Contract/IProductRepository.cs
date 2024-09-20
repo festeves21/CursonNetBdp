@@ -20,5 +20,7 @@ namespace WebAppDia2.Contract
 
         Task<List<UserKardexSummaryDto>> GetKardexSummaryByUserAsync(DateTime startDate, DateTime endDate);
 
+        Task<List<ProductDTO>> GetFullProductsAsync(string? searchTerm, int pageNumber, int pageSize);
+
     }
 }

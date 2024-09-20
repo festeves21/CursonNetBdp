@@ -1,5 +1,6 @@
 using Jose;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -40,7 +41,20 @@ namespace WebAppDia2
                 throw new InvalidOperationException("Las rutas de las claves públicas o privadas no están configuradas.");
             }
 
+            // Configura CORS
 
+            var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>();
+
+
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowSpecificOrigin", builder =>
+                {
+                    builder.WithOrigins(allowedOrigins)
+                           .AllowAnyMethod()
+                           .AllowAnyHeader();
+                });
+            });
 
             // Registro para compartir la configuracion leida del appsetting
             builder.Services.Configure<JwtSettingsFile>(builder.Configuration.GetSection("JwtSettings"));
@@ -158,7 +172,8 @@ namespace WebAppDia2
                     });
                 }
 
-
+                // Politicas a utilizar
+                app.UseCors("AllowSpecificOrigin"); // Usa la política de CORS definida
 
 
                 // Middleware de autenticación y autorización
