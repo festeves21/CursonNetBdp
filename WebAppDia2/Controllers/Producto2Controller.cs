@@ -15,7 +15,7 @@ namespace WebAppDia2.Controllers
     [ApiController]
     //[Authorize]
     [Route("api/[controller]")]
-    public class Producto2Controller: ControllerBase
+    public class Producto2Controller : ControllerBase
     {
         private readonly IRepository<Product> _productsRepository;
         private readonly IRepository<Supplier> _supplierRepository;
@@ -34,7 +34,7 @@ namespace WebAppDia2.Controllers
                                    IRepository<Category> categoryRepository,
                                     IProductRepository productRepository, IMapper mapper,
                                     ILogger<Producto2Controller> logger,
-                                      CacheService cacheService) 
+                                      CacheService cacheService)
         {
             _productsRepository = productsRepository;
             _productRepository = productRepository;
@@ -59,7 +59,7 @@ namespace WebAppDia2.Controllers
             return lista;
         }
 
-
+       // [CustomAuthorize()]
         [HttpGet("GetProductsCaching")]
         public List<Product> GetAllCache()
         {

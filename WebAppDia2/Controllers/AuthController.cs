@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using WebAppDia2.Entities;
 using WebAppDia2.Models;
 using WebAppDia2.Services;
+using WebAppDia3.Models;
 
 namespace WebAppDia2.Controllers
 {
@@ -12,36 +13,40 @@ namespace WebAppDia2.Controllers
     public class AuthController : ControllerBase
 
     {
+        private readonly JwtTokenService _jw;
 
-        private readonly JwtSettings _jwtSettings;
-
-        public AuthController(IOptions<JwtSettings> jwtSettings)
-
+        public AuthController(JwtTokenService jw)
         {
-
-            _jwtSettings = jwtSettings.Value;
-
+            _jw = jw;
         }
 
         [HttpPost("login")]
-        public IActionResult Login([FromBody] LoginModel login)
-
+        public async Task<IActionResult> Login([FromBody] LoginModel login)
         {
-
             LoginServices logServ = new LoginServices();
 
             var user = logServ.AuthenticateUser(login);
 
             if (user == null)
-
                 return Unauthorized();
 
-            var tokenString = logServ.GetToken(user, login.ClientType, _jwtSettings);
+            // Generar el Access Token y el Refresh Token
+            var tokenResponse = await _jw.GenerateToken(user, login.ClientType);
+
+            // Crear el objeto de respuesta usando la DTO
+            var response = new AuthResponseDTO
+            {
+                AccessToken = tokenResponse.AccessToken,
+                RefreshToken = tokenResponse.RefreshToken.Token,
+                RefreshTokenExpires = tokenResponse.RefreshToken.Expires
+            };
 
 
-            return Ok(new { Token = tokenString });
+            // Retornar la respuesta con el token y el refresh token
+            return Ok(response);
 
         }
+
 
 
     }
