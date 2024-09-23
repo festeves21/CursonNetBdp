@@ -12,11 +12,13 @@ using WebAppDia2.Data;
 using WebAppDia2.Models;
 using WebAppDia2.Repositories;
 using WebAppDia2.Services;
+using WebAppDia3.Application;
 using WebAppDia3.Authorization;
 using WebAppDia3.Contract;
 using WebAppDia3.Data;
 using WebAppDia3.infreaestructura;
 using WebAppDia3.Mapping;
+using WebAppDia3.Repositories;
 using WebAppDia3.Services;
 
 namespace WebAppDia2
@@ -134,6 +136,8 @@ namespace WebAppDia2
                 //Registrar repositorios
                 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
                 builder.Services.AddScoped<IProductRepository, ProductRepository>();
+                builder.Services.AddScoped<IInvAppService, InvAppService>();
+                builder.Services.AddScoped<IProductCustomRepository, ProductCustomRepository>();
 
                 // Registro de UnitOfWork
                 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
